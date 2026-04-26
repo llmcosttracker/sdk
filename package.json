@@ -1,0 +1,37 @@
+{
+  "name": "@llmcosttracker/sdk",
+  "version": "0.2.0",
+  "description": "Drop-in cost tracking for Anthropic, OpenAI, Google Gemini, and xAI Grok calls",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/llmcosttracker/sdk"
+  },
+  "homepage": "https://llmcosttracker.com",
+  "bugs": {
+    "url": "https://github.com/llmcosttracker/sdk/issues"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["anthropic", "openai", "gemini", "grok", "llm", "cost", "tracking", "observability"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": ">=0.20.0",
+    "openai": ">=4.0.0",
+    "@google/generative-ai": ">=0.1.0",
+    "@xai/sdk": ">=0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": { "optional": true },
+    "openai": { "optional": true },
+    "@google/generative-ai": { "optional": true },
+    "@xai/sdk": { "optional": true }
+  }
+}
