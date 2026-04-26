@@ -17,7 +17,7 @@ const response = await trackedCall({
   client: anthropic,
   feature: 'search',
   userId: session.userId,
-  apiKey: process.env.LCT_API_KEY,
+  apiKey: process.env.LLMCOSTTRACKER_API_KEY,
   params: {
     model: 'claude-sonnet-4-6',
     messages,
@@ -35,7 +35,7 @@ const stream = await trackedStream({
   client: anthropic,
   feature: 'chat',
   userId: session.userId,
-  apiKey: process.env.LCT_API_KEY,
+  apiKey: process.env.LLMCOSTTRACKER_API_KEY,
   params: {
     model: 'claude-sonnet-4-6',
     messages,
