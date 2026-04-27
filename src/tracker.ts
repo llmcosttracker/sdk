@@ -8,8 +8,7 @@ export interface TrackedCallOptions {
   apiKey: string
   feature?: string
   userId?: string
-  promptVersion?: string          // ← add this
-  metadata?: Record<string, unknown>
+  promptVersion?: string          
   endpoint?: string
 }
 
@@ -21,7 +20,6 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
     feature,
     userId,
     promptVersion,                // ← destructure
-    metadata,
     endpoint = DEFAULT_ENDPOINT,
   } = options
 
@@ -43,7 +41,6 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
       input_tokens: usage?.input_tokens ?? 0,
       output_tokens: usage?.output_tokens ?? 0,
       latency_ms,
-      metadata,
     })
 
     return response
@@ -64,7 +61,6 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
       input_tokens: usage?.prompt_tokens ?? 0,
       output_tokens: usage?.completion_tokens ?? 0,
       latency_ms,
-      metadata,
     })
 
     return response
@@ -83,7 +79,6 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
     feature,
     userId,
     promptVersion,                // ← destructure
-    metadata,
     endpoint = DEFAULT_ENDPOINT,
   } = options
 
@@ -105,7 +100,6 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
         input_tokens: usage?.input_tokens ?? 0,
         output_tokens: usage?.output_tokens ?? 0,
         latency_ms,
-        metadata,
       })
     }).catch(() => {})
 

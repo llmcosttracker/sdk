@@ -7,7 +7,6 @@ export interface EventPayload {
   input_tokens: number
   output_tokens: number
   latency_ms?: number
-  metadata?: Record<string, unknown>
 }
 
 export async function logEvent(
