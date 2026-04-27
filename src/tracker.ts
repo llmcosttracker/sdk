@@ -1,6 +1,6 @@
 import { logEvent } from './client'
 
-const DEFAULT_ENDPOINT = 'https://burnwise.vercel.app/api/events'
+const DEFAULT_ENDPOINT = 'https://burnwise-navy.vercel.app/api/events'
 
 export interface TrackedCallOptions {
   client: any
@@ -78,7 +78,7 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
     apiKey,
     feature,
     userId,
-    promptVersion,                // ← destructure
+    promptVersion,
     endpoint = DEFAULT_ENDPOINT,
   } = options
 
@@ -87,21 +87,24 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
   if (typeof client?.messages?.stream === 'function') {
     const stream = client.messages.stream(params)
 
-    stream.finalMessage().then((msg: any) => {
+    // Attach logging after final message — non-blocking but kept alive
+    const logAfterStream = stream.finalMessage().then((msg: any) => {
       const latency_ms = Date.now() - start
       const usage = msg?.usage
-
-      logEvent(endpoint, {
+      return logEvent(endpoint, {
         api_key: apiKey,
         feature,
         user_id: userId,
-        prompt_version: promptVersion,  // ← pass through
+        prompt_version: promptVersion,
         model: params.model ?? msg?.model ?? 'unknown',
         input_tokens: usage?.input_tokens ?? 0,
         output_tokens: usage?.output_tokens ?? 0,
         latency_ms,
       })
     }).catch(() => {})
+
+    // Attach to stream so callers can optionally await it
+    ;(stream as any).__logPromise = logAfterStream
 
     return stream
   }
