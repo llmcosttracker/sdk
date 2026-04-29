@@ -1,6 +1,6 @@
 import { logEvent } from './client'
 
-const DEFAULT_ENDPOINT = 'https://burnwise-navy.vercel.app/api/events'
+const DEFAULT_ENDPOINT = 'https://llmcosttracker.com/api/events'
 
 export interface TrackedCallOptions {
   client: any
