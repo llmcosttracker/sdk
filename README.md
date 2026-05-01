@@ -17,6 +17,7 @@ const response = await trackedCall({
   client: anthropic,
   feature: 'search',
   userId: session.userId,
+  tier: 'pro',
   apiKey: process.env.LLMCOSTTRACKER_API_KEY,
   params: {
     model: 'claude-sonnet-4-6',
@@ -35,6 +36,7 @@ const stream = await trackedStream({
   client: anthropic,
   feature: 'chat',
   userId: session.userId,
+  tier: 'pro',
   apiKey: process.env.LLMCOSTTRACKER_API_KEY,
   params: {
     model: 'claude-sonnet-4-6',
@@ -56,6 +58,7 @@ try {
     client: anthropic,
     feature: 'search',
     userId: session.userId,
+    tier: 'free',
     apiKey: process.env.LLMCOSTTRACKER_API_KEY,
     params: {
       model: 'claude-sonnet-4-6',
@@ -99,7 +102,29 @@ try {
 | `warn` | Call proceeds, `onBudgetWarning` fires |
 | `dry_run` | Call proceeds, logs a console warning — safe for testing |
 
-> Budget enforcement requires a Growth plan on [llmcosttracker.com](https://llmcosttracker.com).
+## Tier Templates
+
+Rather than configuring a budget per user, you can define spend limits by tier in the dashboard and pass a `tier` tag on each call. The SDK will enforce the matching tier template automatically — no per-user budget config required.
+
+```typescript
+// Configure once in your LLM Cost Tracker dashboard:
+// free tier  → $5/month, block
+// pro tier   → $50/month, warn
+// enterprise → $500/month, dry_run
+
+// Then just pass tier on every call:
+await trackedCall({
+  client: anthropic,
+  userId: session.userId,
+  tier: session.plan,        // 'free' | 'pro' | 'enterprise'
+  apiKey: process.env.LLMCOSTTRACKER_API_KEY,
+  params: { ... },
+})
+```
+
+Tier templates apply to all users on that tier automatically. If a user also has a per-user budget configured, that takes precedence over the tier template.
+
+> Tier templates require a Growth plan on [llmcosttracker.com](https://llmcosttracker.com).
 
 ## Options
 
@@ -110,8 +135,9 @@ try {
 | `apiKey` | `string` | Yes | Your LLM Cost Tracker project API key |
 | `feature` | `string` | No | Tag for this call e.g. `'search'` |
 | `userId` | `string` | No | Your app's user identifier |
+| `tier` | `string` | No | Your app's pricing tier for this user e.g. `'free'`, `'pro'` |
 | `promptVersion` | `string` | No | Tag deploys for cost comparison e.g. `process.env.DEPLOY_SHA` |
-| `budget` | `BudgetConfig` | No | Per-user spend limit configuration |
+| `budget` | `BudgetConfig` | No | Per-user spend limit — takes precedence over tier template |
 | `onBudgetWarning` | `(result: BudgetCheckResult) => void` | No | Callback fired at alert threshold or on warn action |
 | `endpoint` | `string` | No | Custom endpoint for self-hosted installs |
 

@@ -10,6 +10,7 @@ export interface TrackedCallOptions {
   apiKey: string
   feature?: string
   userId?: string
+  tier?: string
   promptVersion?: string
   endpoint?: string
   budget?: BudgetConfig
@@ -23,6 +24,7 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
     apiKey,
     feature,
     userId,
+    tier,
     promptVersion,
     endpoint = DEFAULT_ENDPOINT,
     budget,
@@ -50,6 +52,7 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
       api_key:        apiKey,
       feature,
       user_id:        userId,
+      tier,
       prompt_version: promptVersion,
       model:          params.model ?? response?.model ?? 'unknown',
       input_tokens:   inputTokens,
@@ -57,7 +60,6 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
       latency_ms,
     })
 
-    // ── Increment spend counter after successful call ─────────
     if (budget && userId && inputTokens !== null && outputTokens !== null) {
       const { calculateCost } = await import('./pricing')
       const costUsd = calculateCost(
@@ -87,6 +89,7 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
       api_key:        apiKey,
       feature,
       user_id:        userId,
+      tier,
       prompt_version: promptVersion,
       model:          params.model ?? response?.model ?? 'unknown',
       input_tokens:   inputTokens,
@@ -123,6 +126,7 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
       api_key:        apiKey,
       feature,
       user_id:        userId,
+      tier,
       prompt_version: promptVersion,
       model:          params.model ?? 'unknown',
       input_tokens:   inputTokens,
@@ -160,6 +164,7 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
     apiKey,
     feature,
     userId,
+    tier,
     promptVersion,
     endpoint = DEFAULT_ENDPOINT,
     budget,
@@ -187,6 +192,7 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
         api_key:        apiKey,
         feature,
         user_id:        userId,
+        tier,
         prompt_version: promptVersion,
         model:          params.model ?? msg?.model ?? 'unknown',
         input_tokens:   inputTokens,
@@ -239,6 +245,7 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
         api_key:        apiKey,
         feature,
         user_id:        userId,
+        tier,
         prompt_version: promptVersion,
         model:          finalModel,
         input_tokens:   inputTokens,

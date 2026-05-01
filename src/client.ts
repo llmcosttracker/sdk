@@ -2,6 +2,7 @@ export interface EventPayload {
   api_key:        string
   feature?:       string
   user_id?:       string
+  tier?:          string
   prompt_version?: string
   model:          string
   // null means usage data was unavailable — server will store cost_usd = null.
