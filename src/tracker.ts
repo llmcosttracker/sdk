@@ -1,4 +1,6 @@
 import { logEvent } from './client'
+import { checkBudget, incrementSpend, getWindowStart } from './budget'
+import type { BudgetConfig, BudgetCheckResult } from './budget'
 
 const DEFAULT_ENDPOINT = 'https://www.llmcosttracker.com/api/events'
 
@@ -10,6 +12,8 @@ export interface TrackedCallOptions {
   userId?: string
   promptVersion?: string
   endpoint?: string
+  budget?: BudgetConfig
+  onBudgetWarning?: (result: BudgetCheckResult) => void
 }
 
 export async function trackedCall(options: TrackedCallOptions): Promise<any> {
@@ -21,7 +25,14 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
     userId,
     promptVersion,
     endpoint = DEFAULT_ENDPOINT,
+    budget,
+    onBudgetWarning,
   } = options
+
+  // ── Budget check (pre-call) ───────────────────────────────────
+  if (budget && userId) {
+    checkBudget(userId, budget, onBudgetWarning)
+  }
 
   const start = Date.now()
   let response: any
@@ -32,26 +43,45 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
     const latency_ms = Date.now() - start
     const usage = response?.usage
 
+    const inputTokens  = usage?.input_tokens  ?? null
+    const outputTokens = usage?.output_tokens ?? null
+
     logEvent(endpoint, {
       api_key:        apiKey,
       feature,
       user_id:        userId,
       prompt_version: promptVersion,
       model:          params.model ?? response?.model ?? 'unknown',
-      input_tokens:   usage?.input_tokens  ?? null,
-      output_tokens:  usage?.output_tokens ?? null,
+      input_tokens:   inputTokens,
+      output_tokens:  outputTokens,
       latency_ms,
     })
+
+    // ── Increment spend counter after successful call ─────────
+    if (budget && userId && inputTokens !== null && outputTokens !== null) {
+      const { calculateCost } = await import('./pricing')
+      const costUsd = calculateCost(
+        params.model ?? response?.model ?? 'unknown',
+        inputTokens,
+        outputTokens
+      )
+      if (costUsd !== null) {
+        const windowStart = getWindowStart(budget.windowType)
+        incrementSpend(userId, windowStart, costUsd)
+      }
+    }
 
     return response
   }
 
   // ── OpenAI-compatible (OpenAI, DeepSeek, xAI, Perplexity) ───
-  // All use client.chat.completions.create with prompt_tokens / completion_tokens
   if (typeof client?.chat?.completions?.create === 'function') {
     response = await client.chat.completions.create(params)
     const latency_ms = Date.now() - start
     const usage = response?.usage
+
+    const inputTokens  = usage?.prompt_tokens     ?? null
+    const outputTokens = usage?.completion_tokens ?? null
 
     logEvent(endpoint, {
       api_key:        apiKey,
@@ -59,21 +89,35 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
       user_id:        userId,
       prompt_version: promptVersion,
       model:          params.model ?? response?.model ?? 'unknown',
-      input_tokens:   usage?.prompt_tokens     ?? null,
-      output_tokens:  usage?.completion_tokens ?? null,
+      input_tokens:   inputTokens,
+      output_tokens:  outputTokens,
       latency_ms,
     })
+
+    if (budget && userId && inputTokens !== null && outputTokens !== null) {
+      const { calculateCost } = await import('./pricing')
+      const costUsd = calculateCost(
+        params.model ?? response?.model ?? 'unknown',
+        inputTokens,
+        outputTokens
+      )
+      if (costUsd !== null) {
+        const windowStart = getWindowStart(budget.windowType)
+        incrementSpend(userId, windowStart, costUsd)
+      }
+    }
 
     return response
   }
 
   // ── Google Gemini ─────────────────────────────────────────────
-  // Gemini SDK uses client.models.generateContent and returns
-  // usageMetadata with promptTokenCount / candidatesTokenCount
   if (typeof client?.models?.generateContent === 'function') {
     response = await client.models.generateContent(params)
     const latency_ms = Date.now() - start
     const usage = response?.usageMetadata
+
+    const inputTokens  = usage?.promptTokenCount     ?? null
+    const outputTokens = usage?.candidatesTokenCount ?? null
 
     logEvent(endpoint, {
       api_key:        apiKey,
@@ -81,10 +125,23 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
       user_id:        userId,
       prompt_version: promptVersion,
       model:          params.model ?? 'unknown',
-      input_tokens:   usage?.promptTokenCount     ?? null,
-      output_tokens:  usage?.candidatesTokenCount ?? null,
+      input_tokens:   inputTokens,
+      output_tokens:  outputTokens,
       latency_ms,
     })
+
+    if (budget && userId && inputTokens !== null && outputTokens !== null) {
+      const { calculateCost } = await import('./pricing')
+      const costUsd = calculateCost(
+        params.model ?? response?.model ?? 'unknown',
+        inputTokens,
+        outputTokens
+      )
+      if (costUsd !== null) {
+        const windowStart = getWindowStart(budget.windowType)
+        incrementSpend(userId, windowStart, costUsd)
+      }
+    }
 
     return response
   }
@@ -105,7 +162,14 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
     userId,
     promptVersion,
     endpoint = DEFAULT_ENDPOINT,
+    budget,
+    onBudgetWarning,
   } = options
+
+  // ── Budget check (pre-call) ───────────────────────────────────
+  if (budget && userId) {
+    checkBudget(userId, budget, onBudgetWarning)
+  }
 
   const start = Date.now()
 
@@ -113,19 +177,35 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
   if (typeof client?.messages?.stream === 'function') {
     const stream = client.messages.stream(params)
 
-    const logAfterStream = stream.finalMessage().then((msg: any) => {
+    const logAfterStream = stream.finalMessage().then(async (msg: any) => {
       const latency_ms = Date.now() - start
       const usage = msg?.usage
-      return logEvent(endpoint, {
+      const inputTokens  = usage?.input_tokens  ?? null
+      const outputTokens = usage?.output_tokens ?? null
+
+      logEvent(endpoint, {
         api_key:        apiKey,
         feature,
         user_id:        userId,
         prompt_version: promptVersion,
         model:          params.model ?? msg?.model ?? 'unknown',
-        input_tokens:   usage?.input_tokens  ?? null,
-        output_tokens:  usage?.output_tokens ?? null,
+        input_tokens:   inputTokens,
+        output_tokens:  outputTokens,
         latency_ms,
       })
+
+      if (budget && userId && inputTokens !== null && outputTokens !== null) {
+        const { calculateCost } = await import('./pricing')
+        const costUsd = calculateCost(
+          params.model ?? msg?.model ?? 'unknown',
+          inputTokens,
+          outputTokens
+        )
+        if (costUsd !== null) {
+          const windowStart = getWindowStart(budget.windowType)
+          incrementSpend(userId, windowStart, costUsd)
+        }
+      }
     }).catch(() => {})
 
     ;(stream as any).__logPromise = logAfterStream
@@ -134,8 +214,6 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
   }
 
   // ── OpenAI-compatible streaming ───────────────────────────────
-  // stream: true returns an async iterable; usage appears in the
-  // final chunk when stream_options: { include_usage: true } is set.
   if (typeof client?.chat?.completions?.create === 'function') {
     const stream = await client.chat.completions.create({
       ...params,
@@ -156,7 +234,8 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
         }
       }
       const latency_ms = Date.now() - start
-      return logEvent(endpoint, {
+
+      logEvent(endpoint, {
         api_key:        apiKey,
         feature,
         user_id:        userId,
@@ -166,6 +245,15 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
         output_tokens:  outputTokens,
         latency_ms,
       })
+
+      if (budget && userId && inputTokens !== null && outputTokens !== null) {
+        const { calculateCost } = await import('./pricing')
+        const costUsd = calculateCost(finalModel, inputTokens, outputTokens)
+        if (costUsd !== null) {
+          const windowStart = getWindowStart(budget.windowType)
+          incrementSpend(userId, windowStart, costUsd)
+        }
+      }
     })().catch(() => {})
 
     ;(stream as any).__logPromise = logAfterStream

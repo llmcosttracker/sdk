@@ -1,3 +1,6 @@
 export { trackedCall, trackedStream } from './tracker'
 export type { TrackedCallOptions, TrackedStreamOptions } from './tracker'
 export { calculateCost, MODEL_PRICING } from './pricing'
+export { LLMBudgetExceededError } from './errors'
+export type { BudgetConfig, BudgetCheckResult } from './budget'
+export { getWindowStart, getCurrentSpend, incrementSpend, checkBudget } from './budget'
