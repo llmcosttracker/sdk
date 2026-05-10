@@ -15,7 +15,7 @@ import { trackedCall } from '@llmcosttracker/sdk'
 
 const response = await trackedCall({
   client: anthropic,
-  feature: 'search',
+  group: 'search',
   userId: session.userId,
   tier: 'pro',
   apiKey: process.env.LLMCOSTTRACKER_API_KEY,
@@ -34,7 +34,7 @@ import { trackedStream } from '@llmcosttracker/sdk'
 
 const stream = await trackedStream({
   client: anthropic,
-  feature: 'chat',
+  group: 'chat',
   userId: session.userId,
   tier: 'pro',
   apiKey: process.env.LLMCOSTTRACKER_API_KEY,
@@ -56,7 +56,7 @@ import { trackedCall, LLMBudgetExceededError } from '@llmcosttracker/sdk'
 try {
   const response = await trackedCall({
     client: anthropic,
-    feature: 'search',
+    group: 'search',
     userId: session.userId,
     tier: 'free',
     apiKey: process.env.LLMCOSTTRACKER_API_KEY,
@@ -133,13 +133,28 @@ Tier templates apply to all users on that tier automatically. If a user also has
 | `client` | `Anthropic \| OpenAI \| GoogleGenerativeAI` | Yes | Your initialized client |
 | `params` | `object` | Yes | Params passed to the underlying call |
 | `apiKey` | `string` | Yes | Your LLM Cost Tracker project API key |
-| `feature` | `string` | No | Tag for this call e.g. `'search'` |
+| `group` | `string` | No | Tag for this call e.g. `'search'`, `'summarize'`, or a team name |
 | `userId` | `string` | No | Your app's user identifier |
 | `tier` | `string` | No | Your app's pricing tier for this user e.g. `'free'`, `'pro'` |
 | `promptVersion` | `string` | No | Tag deploys for cost comparison e.g. `process.env.DEPLOY_SHA` |
 | `budget` | `BudgetConfig` | No | Per-user spend limit — takes precedence over tier template |
 | `onBudgetWarning` | `(result: BudgetCheckResult) => void` | No | Callback fired at alert threshold or on warn action |
 | `endpoint` | `string` | No | Custom endpoint for self-hosted installs |
+
+## Groups
+
+The `group` parameter is how LLM Cost Tracker attributes spend. Pass any string — a feature name, a team, a workflow, a client, a campaign. The dashboard will track cost, call volume, and token usage broken down by group, and you can set monthly spend targets per group.
+
+```typescript
+// A product feature
+await trackedCall({ group: 'search', ... })
+
+// A team or workflow
+await trackedCall({ group: 'backend-team', ... })
+
+// A client or campaign
+await trackedCall({ group: 'client-acme', ... })
+```
 
 ## Links
 
