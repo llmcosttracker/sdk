@@ -1,6 +1,6 @@
 export interface EventPayload {
   api_key:        string
-  feature?:       string
+  group?:       string
   user_id?:       string
   tier?:          string
   prompt_version?: string

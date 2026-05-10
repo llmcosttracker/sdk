@@ -8,7 +8,7 @@ export interface TrackedCallOptions {
   client: any
   params: Record<string, any>
   apiKey: string
-  feature?: string
+  group?: string
   userId?: string
   tier?: string
   promptVersion?: string
@@ -22,7 +22,7 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
     client,
     params,
     apiKey,
-    feature,
+    group,
     userId,
     tier,
     promptVersion,
@@ -50,7 +50,7 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
 
     logEvent(endpoint, {
       api_key:        apiKey,
-      feature,
+      group,
       user_id:        userId,
       tier,
       prompt_version: promptVersion,
@@ -87,7 +87,7 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
 
     logEvent(endpoint, {
       api_key:        apiKey,
-      feature,
+      group,
       user_id:        userId,
       tier,
       prompt_version: promptVersion,
@@ -124,7 +124,7 @@ export async function trackedCall(options: TrackedCallOptions): Promise<any> {
 
     logEvent(endpoint, {
       api_key:        apiKey,
-      feature,
+      group,
       user_id:        userId,
       tier,
       prompt_version: promptVersion,
@@ -162,7 +162,7 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
     client,
     params,
     apiKey,
-    feature,
+    group,
     userId,
     tier,
     promptVersion,
@@ -190,7 +190,7 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
 
       logEvent(endpoint, {
         api_key:        apiKey,
-        feature,
+        group,
         user_id:        userId,
         tier,
         prompt_version: promptVersion,
@@ -243,7 +243,7 @@ export async function trackedStream(options: TrackedStreamOptions): Promise<any>
 
       logEvent(endpoint, {
         api_key:        apiKey,
-        feature,
+        group,
         user_id:        userId,
         tier,
         prompt_version: promptVersion,
