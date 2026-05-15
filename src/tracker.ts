@@ -2,7 +2,7 @@ import { logEvent } from './client'
 import { checkBudget, incrementSpend, getWindowStart } from './budget'
 import type { BudgetConfig, BudgetCheckResult } from './budget'
 
-const DEFAULT_ENDPOINT = 'https://www.llmcosttracker.com/api/events'
+const DEFAULT_ENDPOINT = 'https://llmcosttracker.com/api/events'
 
 export interface TrackedCallOptions {
   client: any
