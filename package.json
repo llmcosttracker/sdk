@@ -1,6 +1,6 @@
 {
   "name": "@llmcosttracker/sdk",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Drop-in cost tracking for Anthropic, OpenAI, Google Gemini, and xAI Grok calls",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,9 +16,9 @@
     "url": "https://github.com/llmcosttracker/sdk/issues"
   },
   "scripts": {
-  "build": "tsc",
-  "dev": "tsc --watch",
-  "prepublishOnly": "npm run build"
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "anthropic",
